@@ -14,6 +14,6 @@ BotPlay4U is an iOS-oriented Geode project based on an existing Geometry Dash ti
 
 The GitHub Actions workflow at .github/workflows/ios-build.yml builds the iOS Geode package using Geode SDK 5.11.2. The current package metadata targets Geometry Dash 2.2081 on iOS.
 
-The latest iOS build completed successfully in GitHub Actions for commit 17dceee (run [#10](https://github.com/ClickerGamerS/BotPlayZ4U/actions/runs/43137484941)). Download the 132 KB BotPlay4U-iOS artifact from that run. Artifact SHA-256: `a84bae3548a82b50163f3e23cbf6dc5903f9885507641ed85b0ecfba7eedddc8`. A successful build confirms compilation and packaging only; installation and gameplay behavior still require testing on a compatible iPhone and Geode installation. Safe Mode behavior on platformer levels and levels with unusual end triggers also remains unverified.
+The latest iOS build completed successfully in GitHub Actions for commit c86f595 (run [#13](https://github.com/ClickerGamerS/BotPlayZ4U/actions/runs/43138420793)). Download the 139 KB BotPlay4U-iOS artifact from that run. Artifact SHA-256: `834c0f3819e3b6d624b9fe76c840a5e6915c8721b7f115c5c6e71cdc7a612cda`. A successful build confirms compilation and packaging only; installation and gameplay behavior still require testing on a compatible iPhone and Geode installation. Safe Mode behavior on platformer levels and levels with unusual end triggers also remains unverified.
 
 This source does not yet implement the full adaptive learning, memory, replay, prediction, and menu feature specification.

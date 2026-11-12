@@ -11,12 +11,12 @@ jobs:
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Build with current stable Geode SDK
+      - name: Build with Geode 5.10.1 stable SDK
         id: build
         uses: geode-sdk/build-geode-mod@main
         with:
           path: BotPlay4U
-          sdk: latest
+          sdk: 5.10.1
           target: iOS
       - name: Upload iOS package
         uses: actions/upload-artifact@v4

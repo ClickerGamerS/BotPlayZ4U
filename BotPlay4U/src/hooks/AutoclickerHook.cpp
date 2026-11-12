@@ -11,23 +11,37 @@ class $modify(AutoclickerGJBGLHook, GJBaseGameLayer) {
         size_t currentInputDelta[2] = {0, 0};
         size_t currentRepeats[2] = {0, 0};
         size_t lastDelta[2] = {0, 0};
-        bool isRelease[2] = {false, false}; 
+        bool isRelease[2] = {false, false};
+        bool botInputDown[2] = {false, false};
     };
 
     void processCommands(float dt, bool isHalfTick, bool isLastTick) {
+        auto f = m_fields.self();
         // Safe Mode freezes automated inputs once the finish guard has engaged.
-        if (!Autoclicker::g_autoclickerEnabled ||
-            (Autoclicker::g_safeModeEnabled && Autoclicker::g_safeModeBlocked)) {
+        const bool shouldRun = Autoclicker::g_autoclickerEnabled &&
+            !(Autoclicker::g_safeModeEnabled && Autoclicker::g_safeModeBlocked);
+        if (!shouldRun) {
+            // Release only inputs issued by the bot before returning control.
+            for (size_t i = 0; i < 2; i++) {
+                if (f->botInputDown[i]) {
+                    GJBaseGameLayer::handleButton(false, 1, !i);
+                    f->botInputDown[i] = false;
+                }
+            }
             return GJBaseGameLayer::processCommands(dt, isHalfTick, isLastTick);
         }
-        
-        auto f = m_fields.self();
         //geode::log::info("delta1p: {}, actDel: {}, repeat1p {}, repeatAc {}, currentidx1p {}", m_fields->currentInputDelta[0], Autoclicker::g_inputs[0][f->currentIdx[0]].ticks[f->isRelease[0]], f->currentRepeats[0], Autoclicker::g_inputs[0][f->currentIdx[0]].repeatTimes, f->currentIdx[0]);
         //yes the line above makes the game crash if the vector is empty
 
         for(size_t i = 0; i < 2; i++) {
 
-            if (Autoclicker::g_inputs[i].empty()) continue;
+            if (Autoclicker::g_inputs[i].empty()) {
+                if (f->botInputDown[i]) {
+                    GJBaseGameLayer::handleButton(false, 1, !i);
+                    f->botInputDown[i] = false;
+                }
+                continue;
+            }
 
             if(f->currentIdx[i] >= Autoclicker::g_inputs[i].size()) f->currentIdx[i] = 0;
             if(f->currentRepeats[i] >= Autoclicker::g_inputs[i][f->currentIdx[i]].repeatTimes) f->currentRepeats[i] = 0;
@@ -43,6 +57,7 @@ class $modify(AutoclickerGJBGLHook, GJBaseGameLayer) {
 
                 f->isRelease[i] = !f->isRelease[i]; //switch between release and hold because
                 GJBaseGameLayer::handleButton(f->isRelease[i], 1, !i); //first is player 1 (!i)
+                f->botInputDown[i] = f->isRelease[i];
 
                 if(f->currentRepeats[i] >= Autoclicker::g_inputs[i][f->currentIdx[i]].repeatTimes) {
                     f->currentRepeats[i] = 0;

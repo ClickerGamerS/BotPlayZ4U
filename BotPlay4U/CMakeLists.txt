@@ -11,7 +11,6 @@ set(CMAKE_CXX_VISIBILITY_PRESET hidden)
 project(BotPlay4U VERSION 0.1.0)
 
 file(GLOB_RECURSE SOURCES CONFIGURE_DEPENDS src/*.cpp)
-
 add_library(${PROJECT_NAME} SHARED ${SOURCES})
 
 if (NOT DEFINED ENV{GEODE_SDK})
@@ -21,5 +20,17 @@ else()
 endif()
 
 add_subdirectory($ENV{GEODE_SDK} ${CMAKE_CURRENT_BINARY_DIR}/geode)
+
+# Geode's generated iOS bindings reference FMOD types without including the header.
+if (("${CMAKE_SYSTEM_NAME}" STREQUAL "iOS" OR IOS) AND TARGET GeodeBindings)
+    target_compile_options(GeodeBindings PRIVATE -include Geode/fmod/fmod.hpp)
+endif()
+
+# Sign the iOS dylib so iOS launchers that require a signature can load it.
+if ("${CMAKE_SYSTEM_NAME}" STREQUAL "iOS" OR IOS)
+    add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
+        COMMAND codesign --force --sign - $<TARGET_FILE:${PROJECT_NAME}>
+        COMMENT "Signing the iOS dylib (ad-hoc)")
+endif()
 
 setup_geode_mod(${PROJECT_NAME})

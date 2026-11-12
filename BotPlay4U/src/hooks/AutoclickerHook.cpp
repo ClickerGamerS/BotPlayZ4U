@@ -175,11 +175,11 @@ class $modify(AutoclickerPLHook, PlayLayer) {
         Autoclicker::g_safeModeBlocked = false;
         removeSafeModeOverlay();
         checkDelta();
-        PlayLayer::resumeAndRestart(fromStart);
+        if (auto baseLayer = GJBaseGameLayer::get()) static_cast<AutoclickerGJBGLHook*>(baseLayer)->resetPlayback(); PlayLayer::resumeAndRestart(fromStart);
     }
 
-            checkDelta();
-        if (auto baseLayer = GJBaseGameLayer::get()) static_cast<AutoclickerGJBGLHook*>(baseLayer)->resetPlayback();
+    void resume() {
+        checkDelta();
         PlayLayer::resume();
     }
 

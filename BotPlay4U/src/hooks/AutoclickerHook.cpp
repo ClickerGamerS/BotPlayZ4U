@@ -159,13 +159,6 @@ class $modify(AutoclickerPLHook, PlayLayer) {
         return PlayLayer::getCurrentPercent();
     }
 
-    int getCurrentPercentInt() {
-        if (Autoclicker::g_safeModeEnabled &&
-            (Autoclicker::g_autoclickerEnabled || Autoclicker::g_safeModeBlocked)) {
-            return 0;
-        }
-        return PlayLayer::getCurrentPercentInt();
-    }
 
     void checkForEnd() {
         // Use the original percent calculation here, before our display/save mask.

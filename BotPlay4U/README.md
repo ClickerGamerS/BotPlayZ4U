@@ -3,6 +3,7 @@
 BotPlay4U is an iOS-oriented Geode project based on an existing Geometry Dash timing-sequence mod. The source supplied for this adaptation identified its upstream project as [whxkk1/Autoclicker](https://github.com/whxkk1/Autoclicker).
 
 ## Current controls
+
 - **Draggable HUD**: drag the small control on the gameplay screen to reposition it. Tap **BOT ON/OFF** to toggle the configured sequence, or tap **SET** to open the settings panel.
 - **Bot**: replays a configured hold/release timing sequence. It is not yet a path-solving bot and does not automatically learn arbitrary levels.
 - **Safe Mode**: enabled by default. During a Bot run it masks the reported progress to 0 and blocks standard-level completion near 99%, then pauses the level with a visible barrier. Turn Safe Mode off to allow normal completion.
@@ -10,6 +11,9 @@ BotPlay4U is an iOS-oriented Geode project based on an existing Geometry Dash ti
 - **Timing editor**: configure the hold ticks, release ticks, and repeat count for each input, then press **Save**.
 
 ## Build
-The GitHub Actions workflow in `.github/workflows/multi-platform.yml` builds iOS and other supported targets using the Geode build action.
 
-**Build status:** this source has not been compiled in this environment because the Geode SDK/Xcode toolchain is unavailable here. Run the workflow on GitHub and check its logs before installing the resulting `.geode` file. In-game behavior, especially Safe Mode on platformer levels and end-trigger-heavy levels, still needs device testing.
+The GitHub Actions workflow at .github/workflows/ios-build.yml builds the iOS Geode package using Geode SDK 5.11.2. The current package metadata targets Geometry Dash 2.2081 on iOS.
+
+The iOS build completed successfully in GitHub Actions for commit b0e7b9c. Download the BotPlay4U-iOS artifact from that workflow run. A successful build confirms compilation and packaging only; installation and gameplay behavior still require testing on a compatible iPhone and Geode installation. Safe Mode behavior on platformer levels and levels with unusual end triggers also remains unverified.
+
+This source does not yet implement the full adaptive learning, memory, replay, prediction, and menu feature specification.

@@ -1,4 +1,5 @@
 #include "AutoclickerPopup.hpp"
+#include <Geode/Geode.hpp>
 #include "../other/variables.hpp"
 #include "InputNode.hpp"
 #include <Geode/binding/PlayLayer.hpp>
@@ -183,6 +184,7 @@ void AutoclickerPopup::toggleAutoclicker(cocos2d::CCObject* sender) {
 
 void AutoclickerPopup::toggleSafeMode(cocos2d::CCObject* sender) {
     Autoclicker::g_safeModeEnabled = !Autoclicker::g_safeModeEnabled;
+    geode::Mod::get()->setSavedValue<bool>("safe-mode", Autoclicker::g_safeModeEnabled);
     if (!Autoclicker::g_safeModeEnabled) {
         Autoclicker::g_safeModeBlocked = false;
         if (auto layer = PlayLayer::get()) {

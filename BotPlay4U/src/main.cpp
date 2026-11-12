@@ -1,5 +1,12 @@
+#include <Geode/Geode.hpp>
 #include <Geode/modify/PauseLayer.hpp>
 #include "UI/AutoclickerPopup.hpp"
+#include "other/variables.hpp"
+
+$on_mod(Loaded) {
+    Autoclicker::g_safeModeEnabled =
+        geode::Mod::get()->getSavedValue<bool>("safe-mode", true);
+}
 class $modify(PLHook, PauseLayer) {
 
 	void customSetup() {

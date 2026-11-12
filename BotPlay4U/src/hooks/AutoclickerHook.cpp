@@ -15,7 +15,25 @@ class $modify(AutoclickerGJBGLHook, GJBaseGameLayer) {
         bool botInputDown[2] = {false, false};
     };
 
-    void processCommands(float dt, bool isHalfTick, bool isLastTick) {
+    void resetPlayback() {
+    auto gjbgl = GJBaseGameLayer::get();
+    if (!gjbgl) return;
+
+    auto fields = static_cast<AutoclickerGJBGLHook*>(gjbgl)->m_fields.self();
+    for (size_t i = 0; i < 2; i++) {
+        if (fields->botInputDown[i]) {
+            GJBaseGameLayer::handleButton(false, 1, !i);
+        }
+        fields->botInputDown[i] = false;
+        fields->currentIdx[i] = 0;
+        fields->currentInputDelta[i] = 0;
+        fields->currentRepeats[i] = 0;
+        fields->lastDelta[i] = 0;
+        fields->isRelease[i] = false;
+    }
+}
+
+void processCommands(float dt, bool isHalfTick, bool isLastTick) {
         auto f = m_fields.self();
         // Safe Mode freezes automated inputs once the finish guard has engaged.
         const bool shouldRun = Autoclicker::g_autoclickerEnabled &&
@@ -137,7 +155,7 @@ class $modify(AutoclickerPLHook, PlayLayer) {
 
     void setupHasCompleted() {
         Autoclicker::g_safeModeBlocked = false;
-        checkDelta();
+        if (auto baseLayer = GJBaseGameLayer::get()) static_cast<AutoclickerGJBGLHook*>(baseLayer)->resetPlayback();
         PlayLayer::setupHasCompleted();
         if (!m_fields->hitboxesApplied) {
             if (Autoclicker::g_hitboxesEnabled) this->toggleDebugDraw();
@@ -160,8 +178,8 @@ class $modify(AutoclickerPLHook, PlayLayer) {
         PlayLayer::resumeAndRestart(fromStart);
     }
 
-    void resume() {
-        checkDelta();
+            checkDelta();
+        if (auto baseLayer = GJBaseGameLayer::get()) static_cast<AutoclickerGJBGLHook*>(baseLayer)->resetPlayback();
         PlayLayer::resume();
     }
 

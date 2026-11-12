@@ -201,8 +201,7 @@ void AutoclickerPopup::toggleHitboxes(cocos2d::CCObject* sender) {
 }
 
 void AutoclickerPopup::saveChanges(cocos2d::CCObject* sender) {
-    Autoclicker::g_inputs[0].clear();
-    Autoclicker::g_inputs[1].clear();
+    std::vector<Input> stagedInputs[2];
     for(size_t i = 0; i < 2; i++) {
         
         size_t repeatAccumulation = 0; //when hold == 0 && release == 0, used to check for accumulated repeat time < 1000
@@ -226,7 +225,7 @@ void AutoclickerPopup::saveChanges(cocos2d::CCObject* sender) {
 
             if(!errorMessage.empty()) {
                 FLAlertLayer::create("Invalid input", "Error message/s:\n" + errorMessage, "Ok")->show();
-                Autoclicker::g_inputs[i].clear();
+                
                 return;
             }
 
@@ -238,20 +237,20 @@ void AutoclickerPopup::saveChanges(cocos2d::CCObject* sender) {
 
             if(repeat == 0) {
                 FLAlertLayer::create("Invalid input", "Repeat needs a value above 0.", "Ok")->show();
-                Autoclicker::g_inputs[i].clear();
+                
                 return;
             }
             if(holdTime == 0 && releaseTime == 0) {
 
                 if(repeat > 1000) {
                     FLAlertLayer::create("Invalid input", "The repeat time cannot exceed 1000 if hold and release are equal to 0.", "Ok")->show();
-                    Autoclicker::g_inputs[i].clear();
+                    
                     return;
                 } else {
                     repeatAccumulation += repeat;
                     if(repeatAccumulation > 1000) {
                         FLAlertLayer::create("Invalid inputs", "The accumulated repeat time for consecutive inputs with a hold and release of 0 cannot exceed 1000.", "Ok")->show();
-                        Autoclicker::g_inputs[i].clear();
+                        
                         return;
                     }
                 }
@@ -261,13 +260,16 @@ void AutoclickerPopup::saveChanges(cocos2d::CCObject* sender) {
 
             }
 
-            Autoclicker::g_inputs[i].emplace_back(Input({holdTime, releaseTime}, repeat, !i)); //first is 0, so, is false (bool p1)
+            stagedInputs[i].emplace_back(Input({holdTime, releaseTime}, repeat, !i)); //first is 0, so, is false (bool p1)
         }
         if(!differentFromZero) {
             FLAlertLayer::create("Invalid input", "At least one input needs a delay different from zero.", "Ok")->show();
-            Autoclicker::g_inputs[i].clear();
+            
             return;
         }
+    }
+    for (size_t i = 0; i < 2; i++) {
+        Autoclicker::g_inputs[i] = stagedInputs[i];
     }
     Autoclicker::g_autoclickerEnabled = toggleState;
     unsavedChanges = false;
@@ -376,10 +378,12 @@ void AutoclickerPopup::removeAllInput(cocos2d::CCObject* sender) {
         "No", "Yes",
         [this, sender](auto, bool btn2) {
             if(btn2) {
-                for(auto& node : textInputs[currentPlayer]) {
-                    textInputs[currentPlayer].back()->removeFromParent();
-                    textInputs[currentPlayer].back()->release();
-                    textInputs[currentPlayer].pop_back();
+                auto& inputs = textInputs[currentPlayer];
+                while (!inputs.empty()) {
+                    auto* node = inputs.back();
+                    node->removeFromParent();
+                    node->release();
+                    inputs.pop_back();
                 }
                 unsavedChanges = true;
             }

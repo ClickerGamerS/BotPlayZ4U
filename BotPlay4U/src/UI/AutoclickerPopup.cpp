@@ -3,7 +3,77 @@
 #include "../other/variables.hpp"
 #include "InputNode.hpp"
 #include <Geode/binding/PlayLayer.hpp>
+#include <cstdint>
+#include <limits>
+#include <utility>
+#include <vector>
 
+namespace {
+    constexpr char kInputSequenceSaveKey[] = "input-sequences-v1";
+
+    void loadSavedInputs() {
+        auto saved = geode::Mod::get()->getSavedValue<std::vector<std::uint64_t>>(
+            kInputSequenceSaveKey, {}
+        );
+        if (saved.size() < 3 || saved[0] != 1) return;
+
+        std::vector<Input> loaded[2];
+        std::size_t cursor = 1;
+        for (std::size_t player = 0; player < 2; player++) {
+            if (cursor >= saved.size()) return;
+            auto count = saved[cursor++];
+            if (count > (saved.size() - cursor) / 3) return;
+
+            loaded[player].reserve(static_cast<std::size_t>(count));
+            std::size_t zeroDelayRepeats = 0;
+            bool hasDelay = false;
+            for (std::uint64_t n = 0; n < count; n++) {
+                auto hold = saved[cursor++];
+                auto release = saved[cursor++];
+                auto repeats = saved[cursor++];
+                if (hold > std::numeric_limits<std::size_t>::max() ||
+                    release > std::numeric_limits<std::size_t>::max() ||
+                    repeats > std::numeric_limits<std::size_t>::max() || repeats == 0) {
+                    return;
+                }
+
+                if (hold == 0 && release == 0) {
+                    if (repeats > 1000 || zeroDelayRepeats > 1000 - repeats) return;
+                    zeroDelayRepeats += static_cast<std::size_t>(repeats);
+                } else {
+                    hasDelay = true;
+                    zeroDelayRepeats = 0;
+                }
+                loaded[player].emplace_back(
+                    Input({static_cast<std::size_t>(hold), static_cast<std::size_t>(release)},
+                          static_cast<std::size_t>(repeats), !player)
+                );
+            }
+            if (!loaded[player].empty() && !hasDelay) return;
+        }
+        if (cursor != saved.size()) return;
+
+        Autoclicker::g_inputs[0] = std::move(loaded[0]);
+        Autoclicker::g_inputs[1] = std::move(loaded[1]);
+    }
+
+    void saveInputs() {
+        std::vector<std::uint64_t> saved{1};
+        for (const auto& playerInputs : Autoclicker::g_inputs) {
+            saved.push_back(static_cast<std::uint64_t>(playerInputs.size()));
+            for (const auto& input : playerInputs) {
+                saved.push_back(static_cast<std::uint64_t>(input.ticks[0]));
+                saved.push_back(static_cast<std::uint64_t>(input.ticks[1]));
+                saved.push_back(static_cast<std::uint64_t>(input.repeatTimes));
+            }
+        }
+        geode::Mod::get()->setSavedValue(kInputSequenceSaveKey, saved);
+    }
+}
+
+$on_mod(Loaded) {
+    loadSavedInputs();
+}
 bool AutoclickerPopup::init() {
     auto winSize = cocos2d::CCDirector::get()->getWinSize();
     width = winSize.width * 0.6f;
@@ -273,6 +343,7 @@ void AutoclickerPopup::saveChanges(cocos2d::CCObject* sender) {
     for (size_t i = 0; i < 2; i++) {
         Autoclicker::g_inputs[i] = stagedInputs[i];
     }
+    saveInputs();
     Autoclicker::g_autoclickerEnabled = toggleState;
     unsavedChanges = false;
 }
